@@ -12,7 +12,7 @@ if (process.env.MYSQL_URL) {
   // Usar variables individuales (para desarrollo local)
   console.log('🔍 Usando variables individuales para conexión');
   const dbConfig = {
-    host: process.env.MYSQLHOST || 'localhost',
+    host: process.env.MYSQLHOST || 'nozomi.proxy.rlwy.net',
     port: process.env.MYSQLPORT || 13693,
     user: process.env.MYSQLUSER || 'root',
     password: process.env.MYSQLPASSWORD || 'WkRMtHedglauDZwYepbHspDTMCYDEQGi',
