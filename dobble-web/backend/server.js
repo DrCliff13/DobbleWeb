@@ -5,6 +5,13 @@ require('dotenv').config();
 const db = require('./db');
 const app = express();
 
+
+
+
+const PORT = process.env.PORT || 3000;
+
+console.log('🚀 Iniciando servidor...');
+
 app.get('/prueba-db', (req, res) => {
   db.query('SELECT NOW() AS ahora', (err, results) => {
     if (err) {
@@ -14,11 +21,6 @@ app.get('/prueba-db', (req, res) => {
   });
 });
 
-
-
-const PORT = process.env.PORT || 3000;
-
-console.log('🚀 Iniciando servidor...');
 
 // ===== MIDDLEWARES BÁSICOS PRIMERO =====
 app.use(cors());
