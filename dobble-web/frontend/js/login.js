@@ -1,5 +1,5 @@
 document.getElementById("btnRegistro").addEventListener("click", function () {
-    window.location.href = "registro.html";
+    window.location.href = "Registro.html";
   });
 
 document.getElementById("loginForm").addEventListener("submit", async function (e) {
