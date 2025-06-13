@@ -1,3 +1,4 @@
+// public/js/login.js
 document.getElementById("loginForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -10,11 +11,11 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
   console.log("Enviando datos:", username, password);
 
-  // 🔍 Detectar entorno (local o producción)
+  // Detectar entorno (localhost vs producción)
   const API_BASE_URL =
     location.hostname === "localhost" || location.hostname === "127.0.0.1"
       ? "http://localhost:3000"
-      : "https://dobbleweb.onrender.com"; // 🔁 reemplaza con tu URL real en Render
+      : "https://dobbleweb.onrender.com"; // ⚠️ Asegúrate que esta URL sea tu backend real
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -34,7 +35,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     console.log("Respuesta del servidor:", data);
 
     if (res.ok) {
-      // Guardar info y redirigir
+      // Guardar en localStorage y redirigir
       localStorage.setItem('user_id', data.user.id);
       localStorage.setItem('usuario', data.user.nombres);
       window.location.href = "menu2.0.html";
