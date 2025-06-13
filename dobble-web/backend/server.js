@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const db = require('./db');
+const app = express();
 
 app.get('/prueba-db', (req, res) => {
   db.query('SELECT NOW() AS ahora', (err, results) => {
@@ -15,7 +16,6 @@ app.get('/prueba-db', (req, res) => {
 
 
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 
 console.log('🚀 Iniciando servidor...');
