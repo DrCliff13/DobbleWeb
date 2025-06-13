@@ -10,7 +10,7 @@ router.post('/login', authController.login);
 router.post('/register', authController.register);
 router.get('/estadisticas/:id', authController.obtenerEstadisticas);
 // Agrega esta línea temporal
-router.get('/verificar-tabla', authController.verificarTabla);
+//router.get('/verificar-tabla', authController.verificarTabla);
 
 
 module.exports = router;
