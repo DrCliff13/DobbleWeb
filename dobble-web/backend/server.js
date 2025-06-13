@@ -2,6 +2,18 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const db = require('./db');
+
+app.get('/prueba-db', (req, res) => {
+  db.query('SELECT NOW() AS ahora', (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error en la base de datos', detalle: err.message });
+    }
+    res.json({ mensaje: 'Conexión exitosa', ahora: results[0].ahora });
+  });
+});
+
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
