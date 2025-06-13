@@ -1,3 +1,7 @@
+document.getElementById("btnRegistro").addEventListener("click", function () {
+    window.location.href = "registro.html";
+  });
+
 document.getElementById("loginForm").addEventListener("submit", async function (e) {
   e.preventDefault();
   const username = document.getElementById("usuario").value;
