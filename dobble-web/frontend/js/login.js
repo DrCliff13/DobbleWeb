@@ -20,7 +20,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     if (res.ok) {
       localStorage.setItem('user_id', data.user.id);
       localStorage.setItem('usuario', data.user.nombres);
-      window.location.href = "menu2.0.html";
+      window.location.href = "Menu2.0.html";
     } else {
       alert("❌ Login fallido: " + data.message);
     }
