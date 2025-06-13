@@ -1,20 +1,23 @@
 document.getElementById("loginForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
-
-document.getElementById("btnRegistro").addEventListener("click", function () {
+  document.getElementById("btnRegistro").addEventListener("click", function () {
     window.location.href = "registro.html";
   });
 
-
-
-const username = document.getElementById("usuario").value;
-const password = document.getElementById("clave").value;
+  const username = document.getElementById("usuario").value;
+  const password = document.getElementById("clave").value;
 
   console.log("Enviando datos:", username, password);
 
+  // 🔍 Detectar entorno (local o producción)
+  const API_BASE_URL =
+    location.hostname === "localhost" || location.hostname === "127.0.0.1"
+      ? "http://localhost:3000"
+      : "https://dobbleweb.onrender.com"; // 🔁 reemplaza con tu URL real en Render
+
   try {
-    const res = await fetch('http://localhost:3000/api/auth/login', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario: username, clave: password })
@@ -31,14 +34,10 @@ const password = document.getElementById("clave").value;
     console.log("Respuesta del servidor:", data);
 
     if (res.ok) {
-      //alert("✅ Login correcto: " + data.message);
-      
-
-      // Redirección a juego.html
-      window.location.href = "menu2.0.html";
-      localStorage.setItem('user_id', data.user.id); 
+      // Guardar info y redirigir
+      localStorage.setItem('user_id', data.user.id);
       localStorage.setItem('usuario', data.user.nombres);
-
+      window.location.href = "menu2.0.html";
     } else {
       alert("❌ Login fallido: " + data.message);
     }
