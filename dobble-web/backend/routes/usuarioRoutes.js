@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // Asegúrate que `db` es tu conexión MySQL
+const db = require('../db');
 const bcrypt = require('bcrypt');
 
 // Registrar usuario
 router.post('/registro', async (req, res) => {
   const { usuario, clave, nombres, apellidos, cedula, fecha_nacimiento, nivel_escolaridad, tipo_usuario } = req.body;
-
+  
   if (!usuario || !clave) {
     return res.status(400).json({ message: 'Usuario y clave son obligatorios' });
   }
@@ -14,13 +14,13 @@ router.post('/registro', async (req, res) => {
   try {
     // Encriptar la clave antes de guardar
     const claveHash = await bcrypt.hash(clave, 10);
-
+    
     const sql = `
-      INSERT INTO Usuarios 
+      INSERT INTO usuarios 
         (usuario, clave, nombres, apellidos, cedula, fecha_nacimiento, nivel_escolaridad, tipo_usuario)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-
+    
     const valores = [
       usuario,
       claveHash,
@@ -40,9 +40,10 @@ router.post('/registro', async (req, res) => {
         console.error('❌ Error al registrar:', err);
         return res.status(500).json({ message: 'Error al registrar el usuario' });
       }
-
+      
       res.status(201).json({ message: 'Usuario registrado con éxito', id: result.insertId });
     });
+
   } catch (error) {
     console.error('❌ Error en /registro:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
