@@ -1,0 +1,9 @@
+id,usuario,clave,nombres,apellidos,cedula,fecha_nacimiento,nivel_escolaridad,tipo_usuario
+1,profesor1,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,Profesor,Uno,NULL,NULL,NULL,profesor
+3,mau,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,mau,si,NULL,NULL,NULL,NULL
+4,eduardo,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,Eduardo,Sinche,0123456789,1995-05-15,universitario,estudiante
+5,cliff,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,Cliff,Dominguez,0123456788,1998-03-20,universitario,desarrollador
+6,erick,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,Erick,Bayona,0123456787,1997-08-10,universitario,analista
+7,andres,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,Andres,Li,0123456786,1996-12-05,universitario,desarrollador
+8,mateo,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,Andres,Arias,0123456785,1999-01-25,universitario,desarrollador
+9,steven,$2b$10$D9YkVAD1lDiYvPA4/mbH0eL/9VXIXcjHRM5KoYCTQXm214IemZjx6,Steven,Castillo,0123456784,1994-07-18,bachillerato,desarrollador
