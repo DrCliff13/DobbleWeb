@@ -4,10 +4,6 @@ const path = require('path');
 require('dotenv').config();
 const db = require('./db');
 const app = express();
-
-
-
-
 const PORT = process.env.PORT || 3000;
 
 console.log('🚀 Iniciando servidor...');
@@ -21,7 +17,6 @@ app.get('/prueba-db', (req, res) => {
   });
 });
 
-
 // ===== MIDDLEWARES BÁSICOS PRIMERO =====
 app.use(cors());
 app.use(express.json());
@@ -32,32 +27,37 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/assets', express.static(path.join(__dirname, '../frontend/assets')));
 console.log('✅ Archivos estáticos configurados');
 
-// ===== RUTAS DE LA API =====
+// ===== RUTAS DE LA API (CON DEBUG) =====
 console.log('🔍 Configurando rutas...');
 
 try {
   // Rutas de autenticación
+  console.log('🔍 Cargando authRoutes...');
   const authRoutes = require('./routes/authRoutes');
   app.use('/api/auth', authRoutes);
   console.log('✅ authRoutes configuradas');
 
   // Rutas de juego 
+  console.log('🔍 Cargando juegoRoutes...');
   const gameRoutes = require('./routes/juegoRoutes');
   app.use('/api/game', gameRoutes);
   console.log('✅ gameRoutes configuradas');
 
   // Rutas de usuario
+  console.log('🔍 Cargando usuarioRoutes...');
   const usuarioRoutes = require('./routes/usuarioRoutes');
   app.use('/api/usuario', usuarioRoutes);
   console.log('✅ usuarioRoutes configuradas');
 
   // Rutas de estadísticas
+  console.log('🔍 Cargando estadisticasRoutes...');
   const estadisticasRoutes = require('./routes/estadisticasRoutes');
   app.use('/api/estadisticas', estadisticasRoutes);
   console.log('✅ estadisticasRoutes configuradas');
 
 } catch (error) {
   console.error('❌ Error configurando rutas:', error.message);
+  console.error('❌ Stack trace:', error.stack);
   process.exit(1); // Salir si hay error crítico
 }
 
