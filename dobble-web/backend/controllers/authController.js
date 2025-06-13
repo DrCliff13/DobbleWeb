@@ -1,5 +1,41 @@
 const db = require('../db');
 const bcrypt = require('bcrypt');
+// Agrega esta función temporal para diagnóstico
+const verificarTabla = (req, res) => {
+  console.log('🔍 Verificando estructura de tabla usuarios...');
+  
+  // Primero verificar si la tabla existe
+  db.query('SHOW TABLES LIKE "usuarios"', (err, results) => {
+    if (err) {
+      console.error('❌ Error verificando tabla:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Tabla usuarios no encontrada' });
+    }
+    
+    // Verificar estructura de la tabla
+    db.query('DESCRIBE usuarios', (err, results) => {
+      if (err) {
+        console.error('❌ Error describiendo tabla:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      console.log('✅ Estructura de tabla usuarios:', results);
+      res.json({ tabla: results });
+    });
+  });
+};
+
+// Agrega esta línea a tus exports
+module.exports = {
+  login,
+  register,
+  obtenerEstadisticas,
+  verificarTabla  // ← Agrega esto temporalmente
+};
+
 
 // LOGIN
 // Al inicio de la función login
