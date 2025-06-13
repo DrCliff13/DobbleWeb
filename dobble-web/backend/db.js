@@ -1,35 +1,49 @@
 const mysql = require('mysql2');
-require('dotenv').config(); // Cargar .env
 
-let connection;
+console.log('🔗 Configurando conexión a base de datos...');
 
-if (process.env.DATABASE_URL) {
-  const dbUrl = new URL(process.env.DATABASE_URL);
-  connection = mysql.createConnection({
-    host: dbUrl.hostname,
-    port: dbUrl.port,
-    user: dbUrl.username,
-    password: dbUrl.password,
-    database: dbUrl.pathname.replace('/', ''),
-    ssl: { rejectUnauthorized: false }
-  });
-  console.log('🌐 Conectando a base de datos en producción (Railway)...');
+let db;
+
+if (process.env.MYSQL_URL) {
+  // Usar URL completa (para Railway)
+  console.log('🔍 Usando MYSQL_URL para conexión');
+  db = mysql.createConnection(process.env.MYSQL_URL);
 } else {
-  connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '12345',
-    database: 'dobble_db'
-  });
-  console.log('🖥️ Conectando a base de datos local...');
+  // Usar variables individuales (para desarrollo local)
+  console.log('🔍 Usando variables individuales para conexión');
+  const dbConfig = {
+    host: process.env.MYSQLHOST || 'localhost',
+    port: process.env.MYSQLPORT || 13693,
+    user: process.env.MYSQLUSER || 'root',
+    password: process.env.MYSQLPASSWORD || 'WkRMtHedglauDZwYepbHspDTMCYDEQGi',
+    database: process.env.MYSQLDATABASE || 'railway'
+  };
+  
+  db = mysql.createConnection(dbConfig);
 }
 
-connection.connect((err) => {
+// Conectar y manejar errores
+db.connect((err) => {
   if (err) {
-    console.error('❌ Error al conectar con la base de datos:', err);
-    return;
+    console.error('❌ Error conectando a MySQL:', err);
+    process.exit(1);
   }
-  console.log('✅ Conexión exitosa a la base de datos MySQL');
+  
+  console.log('✅ Conectado a MySQL Railway');
+  
+  // Verificar la base de datos actual
+  db.query('SELECT DATABASE() as current_db', (err, results) => {
+    if (err) {
+      console.error('❌ Error verificando BD:', err);
+    } else {
+      console.log('✅ Base de datos actual:', results[0]?.current_db);
+    }
+  });
 });
 
-module.exports = connection;
+// Manejar errores de conexión
+db.on('error', (err) => {
+  console.error('❌ Error de base de datos:', err);
+});
+
+module.exports = db;
