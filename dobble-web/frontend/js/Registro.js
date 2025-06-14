@@ -32,7 +32,7 @@ document.getElementById('formRegistro').addEventListener('submit', async (e) => 
     mensaje.classList.add('text-blue-500');
     
     try {
-        const response = await fetch(`${getApiBaseUrl()}/api/usuario/registro`, {
+       const res = await fetch(`${API_BASE_URL}/api/usuario/registro`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
