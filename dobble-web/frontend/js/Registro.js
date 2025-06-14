@@ -37,33 +37,32 @@ document.getElementById('formRegistro').addEventListener('submit', async (e) => 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datos)
     });
-    
-    const data = await res.json(); 
+
+    const data = await res.json(); // ← corregido aquí
 
     if (res.ok) {
         mensaje.textContent = '¡Registro exitoso! Ahora puedes iniciar sesión.';
         mensaje.classList.remove('text-red-500', 'text-blue-500');
         mensaje.classList.add('text-green-600');
         document.getElementById('formRegistro').reset();
-        
+
         setTimeout(() => {
             if (confirm('¿Quieres ir al login ahora?')) {
                 window.location.href = 'index.html';
             }
         }, 2000);
-        
     } else {
         mensaje.textContent = data.message || 'Error al registrar usuario.';
         mensaje.classList.remove('text-green-600', 'text-blue-500');
         mensaje.classList.add('text-red-500');
     }
-    
 } catch (error) {
     console.error('Error de conexión:', error);
     mensaje.textContent = 'Error de conexión con el servidor. Verifica tu conexión a internet.';
     mensaje.classList.remove('text-green-600', 'text-blue-500');
     mensaje.classList.add('text-red-500');
 }
+
 
 // Validaciones adicionales en tiempo real (opcional)
 document.addEventListener('DOMContentLoaded', function() {
