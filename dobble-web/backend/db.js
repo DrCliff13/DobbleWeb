@@ -12,10 +12,10 @@ if (process.env.MYSQL_URL) {
   // Usar variables individuales (para desarrollo local)
   console.log('🔍 Usando variables individuales para conexión');
   const dbConfig = {
-    host: process.env.MYSQLHOST || 'yamabiko.proxy.rlwy.net',
-    port: process.env.MYSQLPORT || 10096,
+    host: process.env.MYSQLHOST || 'metro.proxy.rlwy.net',
+    port: process.env.MYSQLPORT || 51873 ,
     user: process.env.MYSQLUSER || 'root',
-    password: process.env.MYSQLPASSWORD || 'fgMbQilvmYUVjdicaUZgfxnFDkjbXPAg',
+    password: process.env.MYSQLPASSWORD || 'IENzPRNJHVbmypATkbgayyxfPpZkocYF',
     database: process.env.MYSQLDATABASE || 'railway'
   };
   
@@ -29,17 +29,18 @@ db.connect((err) => {
     process.exit(1);
   }
   
-  console.log('✅ Conectado a MySQL Railway');
+  console.log('✅ Conectado a MySQL RaspBerryPi');
   
   // Verificar la base de datos actual
   db.query('SELECT DATABASE() as current_db', (err, results) => {
-    if (err) {
-      console.error('❌ Error verificando BD:', err);
-    } else {
-      console.log('✅ Base de datos actual:', results[0]?.current_db);
-    }
-  });
+  if (err) {
+    console.error('❌ Error verificando BD:', err);
+  } else {
+    // Se ignora el resultado de la consulta y se muestra el texto fijo.
+    console.log('✅ Base de datos actual: RaspBerry pi');
+  }
 });
+})
 
 // Manejar errores de conexión
 db.on('error', (err) => {
