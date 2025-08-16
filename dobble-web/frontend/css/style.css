@@ -10,7 +10,25 @@
         color: white; /* Texto blanco por defecto para que contraste con el fondo */
         text-align: center;
     }
-    
+    .instrucciones {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  color: #E0E0E0;
+  text-align: center;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  backdrop-filter: blur(5px);
+}
+
+.instrucciones strong {
+  color: #87CEEB; /* Un color azul cielo para destacar */
+  font-weight: bold;
+}
+
     /* Contenedor para las capas de estrellas (fondo) */
     .stars-container {
         position: fixed; /* Fijo para que no se mueva con el scroll */
@@ -127,3 +145,40 @@
     button:hover {
       background-color: #E5E7EB;
     }
+    /* Estilo base para el mensaje de resultado */
+.resultado-mensaje {
+  margin-top: 15px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  max-width: 500px;
+  opacity: 0; /* Oculto por defecto */
+  transform: translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none; /* Para que no interfiera con los clicks */
+}
+
+/* Estilo para cuando el mensaje es visible */
+.resultado-mensaje.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Estilo para ACIERTO */
+.resultado-mensaje.correcto {
+  background: rgba(46, 204, 113, 0.2);
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+  text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+}
+
+/* Estilo para ERROR */
+.resultado-mensaje.incorrecto {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+}
