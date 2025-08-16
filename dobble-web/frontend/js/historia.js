@@ -555,15 +555,37 @@ class DobbleStoryMode {
     }
 }
 
-// Función global para el botón de leer texto, como está en tu HTML
 function leerTexto() {
-    const texto = document.getElementById("story-text").textContent;
-    const speech = new SpeechSynthesisUtterance(texto);
-    speech.lang = "es-ES";
-    speech.rate = 1;
-    speech.pitch = 1;
-    window.speechSynthesis.speak(speech);
+  const texto = document.getElementById("story-text").textContent;
+  const speech = new SpeechSynthesisUtterance(texto);
+
+  // --- MODIFICACIONES ---
+  speech.lang = "es-ES";
+  speech.rate = 1.9; // Un 30% más rápido
+  speech.pitch = 1.9; // Un poco más agudo para un tono de narrador
+
+  // Obtener y seleccionar una voz diferente
+  const voces = window.speechSynthesis.getVoices();
+  
+  // Busca una voz en español. Los nombres pueden variar.
+  const vozEspañol = voces.find(voice => voice.name === 'Google español' || voice.lang === 'es-ES');
+
+  if (vozEspañol) {
+    speech.voice = vozEspañol;
+    console.log("Voz seleccionada:", vozEspañol.name);
+  } else {
+    console.log("No se encontró una voz específica en español, usando la predeterminada.");
+  }
+
+  // Detiene cualquier voz que se esté reproduciendo antes de iniciar una nueva
+  window.speechSynthesis.cancel(); 
+  window.speechSynthesis.speak(speech);
 }
+
+// Es importante llamar a getVoices() una vez al inicio, ya que a veces la lista tarda en cargar.
+window.speechSynthesis.onvoiceschanged = () => {
+  console.log("Voces del navegador cargadas.");
+};
 
 // Agregar estilos adicionales para animaciones
 const additionalStyles = document.createElement('style');
