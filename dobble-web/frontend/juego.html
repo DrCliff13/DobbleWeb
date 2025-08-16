@@ -21,6 +21,11 @@
   <div class="info-juego">
     ⏱ Tiempo: <span id="tiempo">0.00</span> seg | 🧑 Puntaje: <span id="puntaje">0</span>
   </div>
+
+  <!-- === DIV DE RESULTADO AÑADIDO === -->
+  <div id="resultado" class="resultado-mensaje"></div>
+  <!-- =============================== -->
+
   <br>
   <button id="btnIniciar">🎯 Iniciar Juego</button>
 
@@ -34,16 +39,14 @@
       </div>
     </div>
     <br>
-<button id="btnPausa">⏸ Pausa</button>
+    <button id="btnPausa">⏸ Pausa</button>
 
-<div id="menuPausa" style="display: none; margin-top: 2rem;">
-  <p>⏸ Juego en pausa</p>
-  <button id="btnReanudar">▶ Reanudar</button>
-  <button id="btnVolverMenu">🔙 Volver al Menú</button>
-</div>
-      <div class="botones-juego">
-        
-        
+    <div id="menuPausa" style="display: none; margin-top: 2rem;">
+      <p>⏸ Juego en pausa</p>
+      <button id="btnReanudar">▶ Reanudar</button>
+      <button id="btnVolverMenu">🔙 Volver al Menú</button>
+    </div>
+    <div class="botones-juego">
       <button id="btnReiniciar" style="display:none;">🔁 Reiniciar intento</button>
       <button id="btnMenu" style="display:none;">🏠 Volver al menú</button>
     </div>
