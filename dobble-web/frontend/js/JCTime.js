@@ -1,13 +1,52 @@
 let simboloCorrecto = null;
 let puntaje = 0;
+let tiempo = 0; // Variable unificada para el tiempo
 let tiempoInicio;
 let tiempoTranscurrido = 0;
 let intervaloCronometro = null;
 let juegoPausado = false;
 
-const simbolosDisponibles = ["🛹", "🌭", "🍔", "🍕", "🪬", "🧩", "⚽", "🎮", "🖼️", "🌺", "🚌", "💫", "🍀", "🏍️", "☕", "🍪", "🤎", "📜"];
+const simbolosDisponibles = ["🛹", "🌭", "🍔", "🍕", "�", "🧩", "⚽", "🎮", "🖼️", "🌺", "🚌", "💫", "🍀", "🏍️", "☕", "🍪", "🤎", "📜"];
 const puntajeFinal = 10;
-const TIEMPO_LIMITE = 10;
+const TIEMPO_LIMITE = 10; // Límite de tiempo para este modo
+
+// ===   REGISTRA LA PARTIDA EN EL BACKEND ===
+async function registrarPartida(gano) {
+    const usuario_id = localStorage.getItem('user_id');
+    if (!usuario_id) {
+        console.error("No se encontró usuario para registrar la partida (JCTime).");
+        return;
+    }
+
+    // Usamos la variable 'tiempo' que ahora lleva la cuenta total
+    const tiempoFinal = parseFloat(tiempo.toFixed(2));
+
+    const datosPartida = {
+        usuario_id: parseInt(usuario_id),
+        tiempo_partida: tiempoFinal,
+        gano: gano
+    };
+
+    try {
+        // Asegúrate de que la URL coincida con la de tu servidor
+        const response = await fetch('http://localhost:3000/api/estadisticas/actualizar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosPartida)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("Partida (JCTime) registrada con éxito:", data.message);
+        } else {
+            console.error("Error al registrar la partida (JCTime):", data.error);
+        }
+    } catch (error) {
+        console.error("Error de conexión al registrar la partida (JCTime):", error);
+    }
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const nombre = localStorage.getItem('usuario') || 'Jugador';
@@ -51,7 +90,6 @@ document.addEventListener("DOMContentLoaded", () => {
       span.classList.add("simbolo");
       span.textContent = simbolo;
 
-      // Estilo aleatorio
       const size = Math.floor(Math.random() * 20) + 24;
       span.style.fontSize = `${size}px`;
       span.style.position = "relative";
@@ -65,17 +103,21 @@ document.addEventListener("DOMContentLoaded", () => {
   function iniciarCronometro() {
     tiempoInicio = Date.now();
     intervaloCronometro = setInterval(() => {
-      const tiempoActual = (Date.now() - tiempoInicio) / 1000 + tiempoTranscurrido;
-      document.getElementById("tiempo").textContent = tiempoActual.toFixed(2);
+      if (juegoPausado) return;
+      
+      tiempo = (Date.now() - tiempoInicio) / 1000 + tiempoTranscurrido;
+      document.getElementById("tiempo").textContent = tiempo.toFixed(2);
 
-      if (tiempoActual >= TIEMPO_LIMITE) {
+      if (tiempo >= TIEMPO_LIMITE) {
         detenerCronometro();
         resultado.textContent = "⏱ ¡Tiempo agotado! Juego terminado.";
         resultado.style.background = "rgba(244, 67, 54, 0.2)";
         eliminarListenersSimbolos();
         btnPausa.style.display = "none";
         mostrarBotonesFinJuego();
-        registrarPuntaje();
+        
+        // === INVOCAR HECHIZO AL PERDER POR TIEMPO ===
+        registrarPartida(false);
       }
     }, 100);
   }
@@ -124,8 +166,10 @@ document.addEventListener("DOMContentLoaded", () => {
         detenerCronometro();
         resultado.textContent = "🎉 ¡Has ganado! Juego terminado.";
         eliminarListenersSimbolos();
-        registrarPuntaje();
-        actualizarEstadisticas();
+        
+        // === INVOCAR HECHIZO AL GANAR ===
+        registrarPartida(true);
+
         btnPausa.style.display = "none";
         return;
       }
@@ -155,38 +199,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function registrarPuntaje() {
-    fetch('/guardar-intento', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, puntaje })
-    })
-      .then(res => res.json())
-      .then(data => console.log("Puntaje guardado:", data))
-      .catch(err => console.error("Error al guardar puntaje:", err));
-  }
-
-  function actualizarEstadisticas() {
-    const usuario_id = localStorage.getItem('user_id');
-    const tiempoTotal = (tiempoTranscurrido + (Date.now() - tiempoInicio) / 1000).toFixed(2);
-    const victoria = puntaje >= puntajeFinal ? 1 : 0;
-
-    fetch('http://localhost:3000/api/estadisticas/actualizar-estadisticas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        usuario_id: usuario_id,
-        tiempo: parseFloat(tiempoTotal),
-        victoria: victoria
-      })
-    })
-      .then(res => res.json())
-      .then(data => console.log("✅ Estadísticas guardadas:", data))
-      .catch(err => console.error("❌ Error guardando estadísticas:", err));
-  }
+  // Las funciones 'registrarPuntaje' y 'actualizarEstadisticas' ya no son necesarias.
 
   function iniciarJuego() {
     puntaje = 0;
+    tiempo = 0;
     tiempoTranscurrido = 0;
     document.getElementById("tiempo").textContent = "0.00";
     puntajeSpan.textContent = puntaje;
@@ -198,15 +215,13 @@ document.addEventListener("DOMContentLoaded", () => {
     resultado.textContent = "";
     resultado.style.background = "transparent";
     btnPausa.style.display = "inline-block";
+    btnReiniciar.style.display = "none";
+    btnMenu.style.display = "none";
   }
 
   // Eventos
   btnIniciar.addEventListener("click", iniciarJuego);
-  btnReiniciar.addEventListener("click", () => {
-    iniciarJuego();
-    btnReiniciar.style.display = "none";
-    btnMenu.style.display = "none";
-  });
+  btnReiniciar.addEventListener("click", iniciarJuego);
   btnMenu.addEventListener("click", () => window.location.href = "Menu2.0.html");
   btnPausa.addEventListener("click", pausarJuego);
   btnReanudar.addEventListener("click", reanudarJuego);
