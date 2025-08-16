@@ -219,40 +219,30 @@ router.post('/actualizar', async (req, res) => {
             });
         }
         
-        // Verificar si el usuario existe
-        const userExists = await executeQuery(
-            'SELECT id FROM usuarios WHERE id = ?', 
-            [usuario_id]
-        );
-        
-        if (!Array.isArray(userExists) || userExists.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Usuario no encontrado'
-            });
-        }
-        
         // Verificar si ya existe registro de estadísticas
         const statsExists = await executeQuery(
             'SELECT * FROM estadisticas WHERE usuario_id = ?',
             [usuario_id]
         );
         
+        // --- ¡AQUÍ ESTÁ LA MAGIA! ---
         if (!Array.isArray(statsExists) || statsExists.length === 0) {
-            // Crear nuevo registro de estadísticas
+            // SI NO EXISTE: Crear nuevo registro de estadísticas
+            const mejorTiempoInicial = gano ? tiempo_partida : 0;
+            
             await executeQuery(
                 'INSERT INTO estadisticas (usuario_id, partidas_jugadas, mejor_tiempo, victorias) VALUES (?, 1, ?, ?)',
-                [usuario_id, tiempo_partida || 0, gano ? 1 : 0]
+                [usuario_id, mejorTiempoInicial, gano ? 1 : 0]
             );
         } else {
-            // Actualizar estadísticas existentes
+            // SI YA EXISTE: Actualizar estadísticas
             const currentStats = statsExists[0];
             const nuevasPartidas = currentStats.partidas_jugadas + 1;
             const nuevasVictorias = currentStats.victorias + (gano ? 1 : 0);
             
-            // Actualizar mejor tiempo si es menor (y mayor que 0)
             let nuevoMejorTiempo = currentStats.mejor_tiempo;
-            if (tiempo_partida > 0) {
+            // Solo actualiza el mejor tiempo si ganó y el nuevo tiempo es mejor
+            if (gano && tiempo_partida > 0) {
                 if (currentStats.mejor_tiempo === 0 || tiempo_partida < currentStats.mejor_tiempo) {
                     nuevoMejorTiempo = tiempo_partida;
                 }
@@ -264,49 +254,16 @@ router.post('/actualizar', async (req, res) => {
             );
         }
         
-        // Obtener estadísticas actualizadas
-        const updatedStats = await executeQuery(
-            `SELECT 
-                u.nombres,
-                u.apellidos,
-                e.partidas_jugadas,
-                e.mejor_tiempo,
-                e.victorias,
-                (e.partidas_jugadas * 10 + 
-                 CASE 
-                    WHEN e.mejor_tiempo > 0 THEN (300 - e.mejor_tiempo) * 0.5
-                    ELSE 0 
-                 END + 
-                 e.victorias * 100) as puntaje_total
-            FROM usuarios u
-            INNER JOIN estadisticas e ON u.id = e.usuario_id
-            WHERE u.id = ?`,
-            [usuario_id]
-        );
-        
-        const stats = Array.isArray(updatedStats) && updatedStats[0] ? updatedStats[0] : null;
+        // ... (el resto de tu código para obtener y devolver las stats actualizadas) ...
         
         res.json({
             success: true,
             message: 'Estadísticas actualizadas correctamente',
-            estadisticas: stats ? {
-                usuario_id: parseInt(usuario_id),
-                nombre: `${stats.nombres || ''} ${stats.apellidos || ''}`.trim(),
-                partidas_jugadas: stats.partidas_jugadas,
-                mejor_tiempo: stats.mejor_tiempo,
-                victorias: stats.victorias,
-                puntaje_total: Math.round(parseFloat(stats.puntaje_total))
-            } : null,
-            timestamp: new Date().toISOString()
+            // ...
         });
         
     } catch (error) {
-        console.error('Error al actualizar estadísticas:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Error interno del servidor',
-            message: error.message
-        });
+        // ... (tu manejo de errores) ...
     }
 });
 
