@@ -1,24 +1,55 @@
 let tiempo = 0;
-let intervalo;
 let intervaloCronometro; 
 let puntaje = 0;
 const puntajeFinal = 10;
 const TIEMPO_LIMITE = 60;
 let juegoPausado = false;
-let tiempoTranscurrido = 0; 
 let tiempoInicio = 0; 
+let procesandoClick = false;
 
-let carta1, carta2, resultado, zonaJuego, btnIniciar, simboloCorrecto;
+let carta1, carta2, zonaJuego, btnIniciar, simboloCorrecto;
 let figurasCarta1, figurasCarta2;
 let btnReiniciar, btnMenu, btnVolverMenu, btnPausa, btnReanudar, puntajeSpan, menuPausa;
+let resultadoDiv;
 
 const simbolosDisponibles = [
   "☀️", "☁️", "⛄", "⚡", "🔥", "🌟", "💧", "🌿", "🌳",
   "🌺", "🎉", "💫", "🎮", "🍕", "🚀", "🏀", "📚", "🧩", "🎲", "🎯"
 ];
 
-// Obtener nombre del usuario (usar variables en memoria en lugar de localStorage)
-let nombreUsuario = 'Jugador';
+// === FUNCIÓN PARA REGISTRAR LA PARTIDA EN EL BACKEND ===
+async function registrarPartida(gano) {
+    const usuario_id = localStorage.getItem('user_id');
+    if (!usuario_id) {
+        console.error("No se encontró usuario para registrar la partida.");
+        return;
+    }
+
+    const datosPartida = {
+        usuario_id: parseInt(usuario_id),
+        tiempo_partida: parseFloat(tiempo.toFixed(2)),
+        gano: gano
+    };
+
+    try {
+        // Asegúrate de que la URL coincida con la de tu servidor
+        const response = await fetch('http://localhost:3000/api/estadisticas/actualizar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosPartida)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("Partida registrada con éxito:", data.message);
+        } else {
+            console.error("Error al registrar la partida:", data.error);
+        }
+    } catch (error) {
+        console.error("Error de conexión al registrar la partida:", error);
+    }
+}
 
 function generarCartas() {
   const simbolosMezclados = [...simbolosDisponibles].sort(() => 0.5 - Math.random());
@@ -27,23 +58,20 @@ function generarCartas() {
   const carta1Simbolos = [simboloComun, ...simbolosMezclados.slice(1, 9)].sort(() => 0.5 - Math.random());
   const carta2Simbolos = [simboloComun, ...simbolosMezclados.slice(9, 17)].sort(() => 0.5 - Math.random());
 
-  figurasCarta1.innerHTML = '';
-  carta1Simbolos.forEach(s => {
-    const span = document.createElement("span");
-    span.className = "simbolo";
-    span.textContent = s;
-    figurasCarta1.appendChild(span);
-  });
-
-  figurasCarta2.innerHTML = '';
-  carta2Simbolos.forEach(s => {
-    const span = document.createElement("span");
-    span.className = "simbolo";
-    span.textContent = s;
-    figurasCarta2.appendChild(span);
-  });
+  renderizarSimbolos(figurasCarta1, carta1Simbolos);
+  renderizarSimbolos(figurasCarta2, carta2Simbolos);
 
   return simboloComun;
+}
+
+function renderizarSimbolos(container, simbolos) {
+    container.innerHTML = '';
+    simbolos.forEach(s => {
+        const span = document.createElement("span");
+        span.className = "simbolo";
+        span.textContent = s;
+        container.appendChild(span);
+    });
 }
 
 function iniciarCronometro() {
@@ -55,10 +83,12 @@ function iniciarCronometro() {
       document.getElementById("tiempo").textContent = tiempo.toFixed(2);
       if (tiempo >= TIEMPO_LIMITE) {
         detenerCronometro();
-        resultado.textContent = "⏱ ¡Tiempo agotado! Juego terminado.";
+        mostrarMensaje("⏱ ¡Tiempo agotado!", "incorrecto", true);
         eliminarListenersSimbolos();
         mostrarBotonesFinJuego();
-        registrarPuntaje();
+        
+        // === CORRECCIÓN: Llamando al hechizo correcto al perder ===
+        registrarPartida(false); 
       }
     }
   }, 100);
@@ -79,7 +109,6 @@ function mostrarBotonesFinJuego() {
 function pausarJuego() {
   if (juegoPausado || !intervaloCronometro) return;
   juegoPausado = true;
-  tiempoTranscurrido += (Date.now() - tiempoInicio) / 1000;
   clearInterval(intervaloCronometro);
   eliminarListenersSimbolos();
   if (menuPausa) menuPausa.style.display = "block";
@@ -88,43 +117,62 @@ function pausarJuego() {
 function reanudarJuego() {
   if (!juegoPausado) return;
   juegoPausado = false;
-  tiempoInicio = Date.now();
   iniciarCronometro();
   agregarListenersSimbolos();
   if (menuPausa) menuPausa.style.display = "none";
 }
 
-function manejarClicSimbolo(e) {
-  if (juegoPausado || !e.target.classList.contains("simbolo")) return;
+function mostrarMensaje(texto, tipo, permanente = false) {
+    resultadoDiv.textContent = texto;
+    resultadoDiv.className = 'resultado-mensaje';
+    resultadoDiv.classList.add(tipo);
+    resultadoDiv.classList.add('visible');
 
+    if (!permanente) {
+        setTimeout(() => {
+            resultadoDiv.classList.remove('visible');
+        }, 1200);
+    }
+}
+
+function siguienteTurno() {
+    simboloCorrecto = generarCartas();
+    agregarListenersSimbolos();
+    procesandoClick = false;
+}
+
+function manejarClicSimbolo(e) {
+  if (juegoPausado || procesandoClick || !e.target.classList.contains("simbolo")) return;
+
+  procesandoClick = true;
+  eliminarListenersSimbolos();
   const seleccion = e.target.textContent;
 
   if (seleccion === simboloCorrecto) {
     puntaje++;
     if (puntajeSpan) puntajeSpan.textContent = puntaje;
-    resultado.textContent = "🎉 ¡Correcto! Has encontrado el símbolo común";
-    resultado.style.background = "linear-gradient(45deg, #4CAF50, #8BC34A)";
+    mostrarMensaje("🎉 ¡Correcto!", "correcto");
     e.target.classList.add("correcto");
 
     if (puntaje >= puntajeFinal) {
       detenerCronometro();
-      resultado.textContent = "🎉 ¡Has ganado! Juego terminado.";
-      eliminarListenersSimbolos();
-      registrarPuntaje();
-      actualizarEstadisticas();
+      mostrarMensaje("🏆 ¡Has ganado!", "correcto", true);
+      
+      // === CORRECCIÓN: Llamando al hechizo correcto al ganar ===
+      registrarPartida(true);
+      
       if (btnPausa) btnPausa.style.display = "none";
       return;
     }
+
+    setTimeout(siguienteTurno, 1300);
+
   } else {
-    resultado.textContent = "❌ Incorrecto. Nuevas cartas...";
-    resultado.style.background = "rgba(244, 67, 54, 0.2)";
+    mostrarMensaje("❌ Incorrecto", "incorrecto");
     e.target.classList.add("incorrecto");
     setTimeout(() => e.target.classList.remove("incorrecto"), 500);
+    setTimeout(siguienteTurno, 1300);
   }
-
-  eliminarListenersSimbolos();
-  simboloCorrecto = generarCartas();
-  agregarListenersSimbolos();
 }
 
 function agregarListenersSimbolos() {
@@ -139,32 +187,19 @@ function eliminarListenersSimbolos() {
   });
 }
 
-function registrarPuntaje() {
-  const nombre = localStorage.getItem('usuario') || 'Jugador';
-  fetch('/guardar-intento', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nombre, puntaje })
-  })
-    .then(res => res.json())
-    .then(data => console.log("Puntaje guardado:", data))
-    .catch(err => console.error("Error al guardar puntaje:", err));
-}
-
-function actualizarEstadisticas() {
-  // Función placeholder para actualizar estadísticas
-  console.log("Actualizando estadísticas...");
-}
+// La vieja función registrarPuntaje ha sido eliminada.
 
 function iniciarJuego() {
   puntaje = 0;
   tiempo = 0;
-  tiempoTranscurrido = 0;
   juegoPausado = false;
+  procesandoClick = false;
   
   document.getElementById("tiempo").textContent = "0.00";
   if (puntajeSpan) puntajeSpan.textContent = puntaje;
   
+  resultadoDiv.classList.remove('visible', 'correcto', 'incorrecto');
+
   simboloCorrecto = generarCartas();
   agregarListenersSimbolos();
   iniciarCronometro();
@@ -174,16 +209,9 @@ function iniciarJuego() {
   if (btnReiniciar) btnReiniciar.style.display = "none";
   if (btnMenu) btnMenu.style.display = "none";
   if (btnPausa) btnPausa.style.display = "inline-block";
-  
-  resultado.textContent = "";
-  resultado.style.background = "transparent";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Inicializar elementos del DOM
-  carta1 = document.getElementById("carta1");
-  carta2 = document.getElementById("carta2");
-  resultado = document.getElementById("resultado") || document.createElement("div");
   zonaJuego = document.getElementById("zonaJuego");
   btnIniciar = document.getElementById("btnIniciar");
   figurasCarta1 = document.getElementById("figurasCarta1");
@@ -195,45 +223,15 @@ document.addEventListener("DOMContentLoaded", () => {
   btnReanudar = document.getElementById("btnReanudar");
   puntajeSpan = document.getElementById("puntaje");
   menuPausa = document.getElementById("menuPausa");
+  resultadoDiv = document.getElementById("resultado");
 
-  // Mostrar nombre del usuario
-   const nombre = localStorage.getItem('usuario') || 'Jugador';
+  const nombre = localStorage.getItem('usuario') || 'Jugador';
   document.getElementById("nombreUsuario").textContent = nombre;
 
-
-  // Event listeners
-  if (btnIniciar) {
-    btnIniciar.addEventListener("click", iniciarJuego);
-  }
-
-  if (btnPausa) {
-    btnPausa.addEventListener("click", pausarJuego);
-  }
-
-  if (btnReanudar) {
-    btnReanudar.addEventListener("click", reanudarJuego);
-  }
-
-  const btnReanudarPausa = document.getElementById("btnReanudarPausa");
-  if (btnReanudarPausa) {
-    btnReanudarPausa.addEventListener("click", reanudarJuego);
-  }
-
-  if (btnVolverMenu) {
-    btnVolverMenu.addEventListener("click", () => {
-      window.location.href = "Menu2.0.html";
-    });
-  }
-
-  if (btnReiniciar) {
-    btnReiniciar.addEventListener("click", () => {
-      iniciarJuego();
-    });
-  }
-
-  if (btnMenu) {
-    btnMenu.addEventListener("click", () => {
-      window.location.href = "Menu2.0.html";
-    });
-  }
+  if (btnIniciar) btnIniciar.addEventListener("click", iniciarJuego);
+  if (btnPausa) btnPausa.addEventListener("click", pausarJuego);
+  if (btnReanudar) btnReanudar.addEventListener("click", reanudarJuego);
+  if (btnVolverMenu) btnVolverMenu.addEventListener("click", () => window.location.href = "Menu2.0.html");
+  if (btnReiniciar) btnReiniciar.addEventListener("click", iniciarJuego);
+  if (btnMenu) btnMenu.addEventListener("click", () => window.location.href = "Menu2.0.html");
 });
