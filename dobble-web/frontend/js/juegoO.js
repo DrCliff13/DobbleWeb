@@ -32,7 +32,7 @@ async function registrarPartida(gano) {
     };
 
     try {
-        // Asegúrate de que la URL coincida con la de tu servidor
+        
         const response = await fetch('http://localhost:3000/api/estadisticas/actualizar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -74,6 +74,47 @@ function renderizarSimbolos(container, simbolos) {
     });
 }
 
+
+//Recuadro de instrucciones  //
+document.addEventListener("DOMContentLoaded", () => {
+    // ... todo tu código de inicialización existente ...
+
+    // --- LÓGICA DEL MODAL DE INSTRUCCIONES ---
+    const modal = document.getElementById('modal-instrucciones');
+    const btnCerrarModal = document.getElementById('cerrar-modal');
+
+    // Mostrar el modal al cargar la página
+    if (modal) {
+        // Un pequeño retraso para que la animación de entrada se aprecie
+        setTimeout(() => {
+            modal.classList.add('visible');
+        }, 100);
+    }
+
+    // Función para cerrar el modal
+    function cerrarModal() {
+        if (modal) {
+            modal.classList.remove('visible');
+        }
+    }
+
+    // Eventos para cerrar el modal
+    if (btnCerrarModal) {
+        btnCerrarModal.addEventListener('click', cerrarModal);
+    }
+    
+    // Opcional: cerrar si se hace clic en el fondo oscuro
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cerrarModal();
+            }
+        });
+    }
+    // --- FIN DE LA LÓGICA DEL MODAL ---
+});
+
+
 function iniciarCronometro() {
   clearInterval(intervaloCronometro);
   tiempoInicio = Date.now();
@@ -87,7 +128,7 @@ function iniciarCronometro() {
         eliminarListenersSimbolos();
         mostrarBotonesFinJuego();
         
-        // === CORRECCIÓN: Llamando al hechizo correcto al perder ===
+        // === al perder ===
         registrarPartida(false); 
       }
     }
@@ -158,7 +199,7 @@ function manejarClicSimbolo(e) {
       detenerCronometro();
       mostrarMensaje("🏆 ¡Has ganado!", "correcto", true);
       
-      // === CORRECCIÓN: Llamando al hechizo correcto al ganar ===
+      // == correcto al ganar ===
       registrarPartida(true);
       
       if (btnPausa) btnPausa.style.display = "none";
@@ -186,8 +227,6 @@ function eliminarListenersSimbolos() {
     simbolo.replaceWith(simbolo.cloneNode(true));
   });
 }
-
-// La vieja función registrarPuntaje ha sido eliminada.
 
 function iniciarJuego() {
   puntaje = 0;
