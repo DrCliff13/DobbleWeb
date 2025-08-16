@@ -2,14 +2,50 @@ let tiempo = 0;
 let intervalo;
 let puntaje = 0;
 let juegoPausado = false;
+let procesandoClick = false;
 
 const puntajeFinal = 10;
 const TIEMPO_LIMITE = 60;
 
-let carta1, carta2, resultado, zonaJuego, btnIniciar, simboloCorrecto;
+let carta1, carta2, resultado, zonaJuego, btnIniciar, simboloCorrecto, btnPausa;
 
-const simbolosDisponibles = ["🔴", "⚪", "⚫", "🟤", "🟣", "🔵", "🟢", "🟡", "🟠", "1️⃣", 
+const simbolosDisponibles = ["�", "⚪", "⚫", "🟤", "🟣", "🔵", "🟢", "🟡", "🟠", "1️⃣", 
   "2️⃣", "3️⃣", "4️⃣", "5️⃣", "🟥", "🟪", "🟦", "🟩"];
+
+// === HECHIZO PARA REGISTRAR LA PARTIDA EN EL BACKEND ===
+async function registrarPartida(gano) {
+    const usuario_id = localStorage.getItem('user_id');
+    if (!usuario_id) {
+        console.error("No se encontró usuario para registrar la partida.");
+        return;
+    }
+
+    const datosPartida = {
+        usuario_id: parseInt(usuario_id),
+        tiempo_partida: parseFloat(tiempo.toFixed(2)),
+        gano: gano
+    };
+
+    try {
+        // Asegúrate de que la URL coincida con la de tu servidor
+        const response = await fetch('http://localhost:3000/api/estadisticas/actualizar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosPartida)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("Partida (Educativo) registrada con éxito:", data.message);
+        } else {
+            console.error("Error al registrar la partida (Educativo):", data.error);
+        }
+    } catch (error) {
+        console.error("Error de conexión al registrar la partida (Educativo):", error);
+    }
+}
+
 
 function generarCartas() {
   const simbolosMezclados = [...simbolosDisponibles].sort(() => 0.5 - Math.random());
@@ -31,7 +67,6 @@ function renderizarCarta(cartaElement, simbolos) {
     span.classList.add("simbolo");
     span.textContent = simbolo;
 
-    // Estilo aleatorio
     const size = Math.floor(Math.random() * 20) + 24;
     span.style.fontSize = `${size}px`;
     span.style.position = "relative";
@@ -43,7 +78,7 @@ function renderizarCarta(cartaElement, simbolos) {
 }
 
 function iniciarCronometro() {
-  clearInterval(intervalo); // por si acaso estaba corriendo
+  clearInterval(intervalo);
   intervalo = setInterval(() => {
     if (!juegoPausado) {
       tiempo += 0.1;
@@ -54,7 +89,9 @@ function iniciarCronometro() {
         eliminarListenersSimbolos();
         btnPausa.style.display = "none";
         mostrarBotonesFinJuego();
-        registrarPuntaje();
+        
+        // === INVOCAR HECHIZO AL PERDER POR TIEMPO ===
+        registrarPartida(false); 
       }
     }
   }, 100);
@@ -82,38 +119,51 @@ function reanudarJuego() {
   agregarListenersSimbolos();
 }
 
-function manejarClicSimbolo(e) {
-  if (juegoPausado || !e.target.classList.contains("simbolo")) return;
+function siguienteTurno() {
+    resultado.classList.remove("resultado-correcto");
+    resultado.style.background = "";
+    resultado.textContent = "¡Encuentra el símbolo común entre las dos cartas!";
 
+    simboloCorrecto = generarCartas();
+    agregarListenersSimbolos();
+    procesandoClick = false;
+}
+
+function manejarClicSimbolo(e) {
+  if (juegoPausado || procesandoClick || !e.target.classList.contains("simbolo")) return;
+
+  procesandoClick = true;
   const seleccion = e.target.textContent;
+  eliminarListenersSimbolos();
 
   if (seleccion === simboloCorrecto) {
     puntaje++;
     document.getElementById("puntaje").textContent = puntaje;
     resultado.textContent = "🎉 ¡Correcto! Has encontrado el símbolo común";
-    resultado.style.background = "linear-gradient(45deg, #4CAF50, #8BC34A)";
+    resultado.classList.add("resultado-correcto"); 
     e.target.classList.add("correcto");
 
     if (puntaje >= puntajeFinal) {
       detenerCronometro();
-      resultado.textContent = "🎉 ¡Has ganado! Juego terminado.";
-      eliminarListenersSimbolos();
-      registrarPuntaje();
+      resultado.textContent = "🏆 ¡Has ganado! Juego terminado.";
+      
+      // === INVOCAR HECHIZO AL GANAR ===
+      registrarPartida(true);
+
       btnPausa.style.display = "none";
       return;
     }
 
+    setTimeout(siguienteTurno, 1200);
+
   } else {
-    resultado.textContent = "❌ Incorrecto. Nuevas cartas...";
+    resultado.textContent = "❌ Incorrecto. ¡Sigue intentando!";
     resultado.style.background = "rgba(244, 67, 54, 0.2)";
     e.target.classList.add("incorrecto");
-    setTimeout(() => e.target.classList.remove("incorrecto"), 500);
+    
+    setTimeout(() => e.target.classList.remove("incorrecto"), 600);
+    setTimeout(siguienteTurno, 1200);
   }
-
-  // Regenerar cartas y eventos
-  eliminarListenersSimbolos();
-  simboloCorrecto = generarCartas();
-  agregarListenersSimbolos();
 }
 
 function agregarListenersSimbolos() {
@@ -124,35 +174,31 @@ function agregarListenersSimbolos() {
 
 function eliminarListenersSimbolos() {
   document.querySelectorAll(".simbolo").forEach(simbolo => {
-    simbolo.replaceWith(simbolo.cloneNode(true)); // elimina todos los eventos
+    simbolo.replaceWith(simbolo.cloneNode(true));
   });
 }
 
-function registrarPuntaje() {
-  const nombre = localStorage.getItem('usuario') || 'Jugador';
-  fetch('/guardar-intento', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nombre, puntaje })
-  })
-    .then(res => res.json())
-    .then(data => console.log("Puntaje guardado:", data))
-    .catch(err => console.error("Error al guardar puntaje:", err));
-}
+// La función 'registrarPuntaje' ya no es necesaria y ha sido reemplazada por 'registrarPartida'
 
 function iniciarJuego() {
   puntaje = 0;
   tiempo = 0;
   juegoPausado = false;
+  procesandoClick = false;
   document.getElementById("puntaje").textContent = puntaje;
   document.getElementById("tiempo").textContent = tiempo.toFixed(2);
-  simboloCorrecto = generarCartas();
-  agregarListenersSimbolos();
-  iniciarCronometro();
-  resultado.textContent = "";
+  
+  resultado.classList.remove("resultado-correcto");
+  resultado.style.background = "";
+
+  resultado.textContent = "¡Encuentra el símbolo común entre las dos cartas!";
   zonaJuego.style.display = "block";
   btnIniciar.style.display = "none";
   btnPausa.style.display = "inline-block";
+  
+  simboloCorrecto = generarCartas();
+  agregarListenersSimbolos();
+  iniciarCronometro();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -161,8 +207,9 @@ document.addEventListener("DOMContentLoaded", () => {
   resultado = document.getElementById("resultado");
   zonaJuego = document.getElementById("zonaJuego");
   btnIniciar = document.getElementById("btnIniciar");
+  btnPausa = document.getElementById("btnPausa");
 
-  document.getElementById("btnPausa").addEventListener("click", pausarJuego);
+  btnPausa.addEventListener("click", pausarJuego);
   document.getElementById("btnReanudar").addEventListener("click", reanudarJuego);
   document.getElementById("btnVolverMenu").addEventListener("click", () => {
     window.location.href = "Menu2.0.html";
