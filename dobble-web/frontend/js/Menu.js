@@ -5,13 +5,6 @@ function getApiBaseUrl() {
         : "https://dobbleweb.onrender.com";
 }
 
-// Datos del juego simulados (como respaldo)
-let gameStats = {
-    gamesPlayed: Math.floor(Math.random() * 50) + 10,
-    bestScore: Math.floor(Math.random() * 1000) + 500,
-    wins: Math.floor(Math.random() * 30) + 5
-};
-
 // Inicializar estadísticas
 async function initStats() {
     const userId = localStorage.getItem('user_id');
@@ -47,12 +40,11 @@ async function initStats() {
     }
 }
 
-// Función para mostrar estadísticas de respaldo en caso de error
+// Función para mostrar estadísticas de respaldo (AHORA MUESTRA CEROS)
 function showFallbackStats() {
-    document.getElementById('gamesPlayed').textContent = gameStats.gamesPlayed;
+    document.getElementById('gamesPlayed').textContent = '0'; // Partidas en 0
     document.getElementById('bestTime').textContent = "N/A";
-    document.getElementById('winRate').textContent = 
-        Math.round((gameStats.wins / gameStats.gamesPlayed) * 100) + '%';
+    document.getElementById('winRate').textContent = '0%'; // Porcentaje de victorias en 0
 }
 
 document.addEventListener("DOMContentLoaded", initStats);
